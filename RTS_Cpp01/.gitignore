@@ -74,6 +74,6 @@ Intermediate/*
 # Cache files for the editor to use
 DerivedDataCache/*
 
-Content/StarterContent/*
+# Content/StarterContent/*
 
 RTS_Cpp01.VC.VC.opendb

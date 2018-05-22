@@ -24,12 +24,6 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	UFUNCTION(BlueprintCallable, Category = "Input")
-	void Camera_MoveForwardAndBack(float InAxisValueForward);
-
-	UFUNCTION(BlueprintCallable, Category = "Input")
-	void Camera_MoveLeftAndRight(float InAxisValueRight);
-
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -39,10 +33,57 @@ protected:
 	UStaticMeshComponent* InvisibleObject = nullptr;
 
 private:
+	UFUNCTION(BlueprintCallable, Category = "Input")
+	void Camera_MoveForwardAndBack(float InAxisValueForward);
+
+	UFUNCTION(BlueprintCallable, Category = "Input")
+	void Camera_MoveLeftAndRight(float InAxisValueRight);
+
+	UFUNCTION(BlueprintCallable, Category = "Input")
+	void Camera_ZoomIn();
+
+	UFUNCTION(BlueprintCallable, Category = "Input")
+	void Camera_ZoomOut();
+
+	// Camera Rotate and Pan
+	UFUNCTION(BlueprintCallable, Category = "Input")
+	void Camera_SetHitEnable();
+
+	UFUNCTION(BlueprintCallable, Category = "Input")
+	void Camera_SetHitDisable();
+
+	UFUNCTION(BlueprintCallable, Category = "Input")
+	void Camera_TPanFRotateEnable();
+
+	UFUNCTION(BlueprintCallable, Category = "Input")
+	void Camera_TPanFRotateDisable();
+
+	UFUNCTION(BlueprintCallable, Category = "Input")
+	void Camera_RotateAndPanX(float InMouseX);
+
+	UFUNCTION(BlueprintCallable, Category = "Input")
+	void Camera_RotateX(float InMouseX);
+
 	USpringArmComponent* SpringArm = nullptr;
 
 	UCameraComponent* Camera = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	float Camera_MoveSpeed = 20.0f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	float Camera_ZoomSpeed = 100.0f;
+
+	bool Camera_ScreenEdgeHitEnable = true;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	float Camera_RotateSpeed = 2.5f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	float Camera_PanSpeed = 30.0f;
+
+	bool Camera_TPanFRotate = false;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	float Camera_ScreenEdgeHitSpeed = 20.0f;
 };

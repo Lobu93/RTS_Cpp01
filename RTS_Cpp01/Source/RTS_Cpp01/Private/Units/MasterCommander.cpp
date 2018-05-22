@@ -68,6 +68,17 @@ void AMasterCommander::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	// Camera movement input
 	PlayerInputComponent->BindAxis("MoveForward", this, &AMasterCommander::Camera_MoveForwardAndBack);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AMasterCommander::Camera_MoveLeftAndRight);
+	
+	PlayerInputComponent->BindKey(EKeys::MouseScrollUp, IE_Pressed, this, &AMasterCommander::Camera_ZoomIn);
+	PlayerInputComponent->BindKey(EKeys::MouseScrollDown, IE_Pressed, this, &AMasterCommander::Camera_ZoomOut);
+
+	// Camera Pan and Rotate
+	PlayerInputComponent->BindKey(EKeys::LeftShift, IE_Pressed, this, &AMasterCommander::Camera_TPanFRotateEnable);
+	PlayerInputComponent->BindKey(EKeys::LeftShift, IE_Released, this, &AMasterCommander::Camera_TPanFRotateDisable);
+	PlayerInputComponent->BindKey(EKeys::MiddleMouseButton, IE_Released, this, &AMasterCommander::Camera_SetHitEnable);
+	PlayerInputComponent->BindKey(EKeys::MiddleMouseButton, IE_Pressed, this, &AMasterCommander::Camera_SetHitDisable);
+	PlayerInputComponent->BindAxis("PanX", this, &AMasterCommander::Camera_RotateAndPanX);
+	
 }
 
 void AMasterCommander::Camera_MoveForwardAndBack(float InAxisValueForward)
@@ -88,3 +99,59 @@ void AMasterCommander::Camera_MoveLeftAndRight(float InAxisValueRight)
 	}
 }
 
+void AMasterCommander::Camera_ZoomIn()
+{
+	auto CameraLocation = Camera->GetComponentLocation().Z - InvisibleObject->GetComponentLocation().Z;
+	auto ClampedValue = FMath::Clamp<float>(CameraLocation, 1000.0f, 3000.0f);
+	if (ClampedValue != 1000)
+	{
+		Camera->AddLocalOffset(FVector(Camera_ZoomSpeed, 0.0f, 0.0f));
+	}
+}
+
+void AMasterCommander::Camera_ZoomOut()
+{
+	auto CameraLocation = Camera->GetComponentLocation().Z - InvisibleObject->GetComponentLocation().Z;
+	auto ClampedValue = FMath::Clamp<float>(CameraLocation, 1000.0f, 3000.0f);
+	if (ClampedValue != 3000)
+	{
+		Camera->AddLocalOffset(FVector((-Camera_ZoomSpeed), 0.0f, 0.0f));
+	}
+}
+
+void AMasterCommander::Camera_SetHitEnable()
+{
+	Camera_ScreenEdgeHitEnable = true;
+}
+
+void AMasterCommander::Camera_SetHitDisable()
+{
+	Camera_ScreenEdgeHitEnable = false;
+}
+
+void AMasterCommander::Camera_TPanFRotateEnable()
+{
+	Camera_TPanFRotate = true;
+}
+
+void AMasterCommander::Camera_TPanFRotateDisable()
+{
+	Camera_TPanFRotate = false;
+}
+
+void AMasterCommander::Camera_RotateAndPanX(float InMouseX)
+{
+	if (Camera_TPanFRotate)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Camera_TPanFRotate = TRUE"))
+	}
+	else
+	{
+		Camera_RotateX(InMouseX);
+	}
+}
+
+void AMasterCommander::Camera_RotateX(float InMouseX)
+{
+	UE_LOG(LogTemp, Warning, TEXT("AMasterCommander::Camera_RotateX: %f"), InMouseX)
+}

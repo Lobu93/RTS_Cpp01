@@ -8,6 +8,7 @@
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
 #include "Engine/StaticMesh.h"
+#include "Engine.h"
 
 // Sets default values
 AMasterCommander::AMasterCommander()
@@ -40,7 +41,9 @@ void AMasterCommander::BeginPlay()
 
 	for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
 	{
-		APlayerController* PlayerController = Cast<APlayerController>(*Iterator);
+		// APlayerController* PlayerController = Cast<APlayerController>(*Iterator);
+
+		PlayerController = Cast<APlayerController>(*Iterator);
 
 		if (PlayerController)
 		{
@@ -78,7 +81,14 @@ void AMasterCommander::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	PlayerInputComponent->BindKey(EKeys::MiddleMouseButton, IE_Released, this, &AMasterCommander::Camera_SetHitEnable);
 	PlayerInputComponent->BindKey(EKeys::MiddleMouseButton, IE_Pressed, this, &AMasterCommander::Camera_SetHitDisable);
 	PlayerInputComponent->BindAxis("PanX", this, &AMasterCommander::Camera_RotateAndPanX);
-	
+	PlayerInputComponent->BindAxis("PanY", this, &AMasterCommander::Camera_RotateAndPanY);
+
+	// Camera Screen Edge Hit
+	if (Camera_ScreenEdgeHitEnable)
+	{
+		PlayerInputComponent->BindAxis("PanX", this, &AMasterCommander::ROS_ScreenEdgeHitRight);
+		PlayerInputComponent->BindAxis("PanY", this, &AMasterCommander::ROS_ScreenEdgeHitForward);
+	}
 }
 
 void AMasterCommander::Camera_MoveForwardAndBack(float InAxisValueForward)
@@ -141,17 +151,161 @@ void AMasterCommander::Camera_TPanFRotateDisable()
 
 void AMasterCommander::Camera_RotateAndPanX(float InMouseX)
 {
-	if (Camera_TPanFRotate)
+	if (Camera_TPanFRotate && Camera_ScreenEdgeHitEnable == false)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Camera_TPanFRotate = TRUE"))
+		ROS_PanRight(InMouseX);
 	}
-	else
+	else if (!Camera_TPanFRotate && Camera_ScreenEdgeHitEnable == false)
 	{
-		Camera_RotateX(InMouseX);
+		auto DeltaRotationX = Camera_RotateSpeed * InMouseX;
+		AddActorLocalRotation(FRotator(0.0f, DeltaRotationX, 0.0f));
 	}
 }
 
-void AMasterCommander::Camera_RotateX(float InMouseX)
+void AMasterCommander::Camera_RotateAndPanY(float InMouseY)
 {
-	UE_LOG(LogTemp, Warning, TEXT("AMasterCommander::Camera_RotateX: %f"), InMouseX)
+	if (Camera_TPanFRotate && PlayerController->IsInputKeyDown(EKeys::MiddleMouseButton))
+	{
+		ROS_PanForward(InMouseY);
+	}
+	else if (!Camera_TPanFRotate && PlayerController->IsInputKeyDown(EKeys::MiddleMouseButton))
+	{
+		auto DeltaRotationY = ((Camera_RotateSpeed * InMouseY) + Camera->GetComponentRotation().Pitch);
+		auto ClampedRotationY = FMath::Clamp<float>(DeltaRotationY, -88.0f, -37.0f);
+		Camera->SetWorldRotation(FRotator(ClampedRotationY, Camera->GetComponentRotation().Yaw, Camera->GetComponentRotation().Roll));
+		UE_LOG(LogTemp, Warning, TEXT("AMasterCommander::ROS_PanForward: %f"), ClampedRotationY)
+	}
+}
+
+// Camera Pan Right
+void AMasterCommander::ROS_PanRight_Implementation(float InValueX)
+{
+	MC_PanRight(InValueX);
+}
+
+bool AMasterCommander::ROS_PanRight_Validate(float InValueX)
+{
+	return true;
+}
+
+void AMasterCommander::MC_PanRight_Implementation(float InValueX)
+{
+	CameraPanX(InValueX);
+}
+
+bool AMasterCommander::MC_PanRight_Validate(float InValueX)
+{
+	return true;
+}
+
+void AMasterCommander::CameraPanX(float InValueX)
+{
+	auto DeltaLocationY = InValueX * Camera_PanSpeed;
+	AddActorLocalOffset(FVector(0.0f, -DeltaLocationY, 0.0f), true);
+}
+
+// Camera Pan Forward
+void AMasterCommander::ROS_PanForward_Implementation(float InValueY)
+{
+	MC_PanForward(InValueY);
+}
+
+bool AMasterCommander::ROS_PanForward_Validate(float InValueY)
+{
+	return true;
+}
+
+void AMasterCommander::MC_PanForward_Implementation(float InValueY)
+{
+	CameraPanY(InValueY);
+}
+
+bool AMasterCommander::MC_PanForward_Validate(float InValueY)
+{
+	return true;
+}
+
+void AMasterCommander::CameraPanY(float InValueY)
+{
+	auto DeltaLocationX = InValueY * Camera_PanSpeed;
+	AddActorLocalOffset(FVector(-DeltaLocationX, 0.0F, 0.0f), true);
+}
+
+// Camera ROS Screen Edge Hit Right
+void AMasterCommander::ROS_ScreenEdgeHitRight_Implementation(float InValueX)
+{
+	MC_ScreenEdgeHitRight(InValueX);
+}
+
+bool AMasterCommander::ROS_ScreenEdgeHitRight_Validate(float InValueX)
+{
+	return true;
+}
+
+void AMasterCommander::MC_ScreenEdgeHitRight_Implementation(float InValueX)
+{
+	Camera_ScreenEdgeHit();
+}
+
+bool AMasterCommander::MC_ScreenEdgeHitRight_Validate(float InValueX)
+{
+	return true;
+}
+
+// Camera ROS Screen Edge Hit Forward
+void AMasterCommander::ROS_ScreenEdgeHitForward_Implementation(float InValueY)
+{
+	MC_ScreenEdgeHitForward(InValueY);
+}
+
+bool AMasterCommander::ROS_ScreenEdgeHitForward_Validate(float InValueX)
+{
+	return true;
+}
+
+void AMasterCommander::MC_ScreenEdgeHitForward_Implementation(float InValueY)
+{
+	Camera_ScreenEdgeHit();
+}
+
+bool AMasterCommander::MC_ScreenEdgeHitForward_Validate(float InValueX)
+{
+	return true;
+}
+
+void AMasterCommander::Camera_ScreenEdgeHit()
+{
+	if (GEngine->GameViewport != nullptr && PlayerController != nullptr)
+	{
+		// Viewport Size
+		const FVector2D ViewportSize = FVector2D(GEngine->GameViewport->Viewport->GetSizeXY());
+
+		float LocationX;
+		float LocationY;
+		PlayerController->GetMousePosition(LocationX, LocationY);
+		float DeltaLocationX = (ViewportSize.X - LocationX) / ViewportSize.X;
+		float DeltaLocationY = (ViewportSize.Y - LocationY) / ViewportSize.Y;
+
+		if (DeltaLocationX >= 0.98f)
+		{
+			AddActorLocalOffset(FVector(0.0f, -Camera_ScreenEdgeHitSpeed, 0.0f), true);
+			UE_LOG(LogTemp, Warning, TEXT("Left: %f"), DeltaLocationX)
+		}
+		else if (DeltaLocationX <= 0.02f)
+		{
+			AddActorLocalOffset(FVector(0.0f, Camera_ScreenEdgeHitSpeed, 0.0f), true);
+			UE_LOG(LogTemp, Warning, TEXT("Right: %f"), DeltaLocationX)
+		}
+		else if (DeltaLocationY >= 0.98f)
+		{
+			AddActorLocalOffset(FVector(Camera_ScreenEdgeHitSpeed, 0.0f, 0.0f), true);
+			UE_LOG(LogTemp, Warning, TEXT("Top: %f"), DeltaLocationY)
+		}
+		else if (DeltaLocationY <= 0.02f)
+		{
+			AddActorLocalOffset(FVector(-Camera_ScreenEdgeHitSpeed, 0.0f, 0.0f), true);
+			UE_LOG(LogTemp, Warning, TEXT("Bottom: %f"), DeltaLocationY)
+		}
+	}
+
 }

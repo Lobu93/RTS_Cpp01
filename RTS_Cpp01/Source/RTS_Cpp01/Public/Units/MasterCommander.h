@@ -58,15 +58,59 @@ private:
 	UFUNCTION(BlueprintCallable, Category = "Input")
 	void Camera_TPanFRotateDisable();
 
-	UFUNCTION(BlueprintCallable, Category = "Input")
+	// Camera Rotate
 	void Camera_RotateAndPanX(float InMouseX);
+	void Camera_RotateAndPanY(float InMouseY);
 
-	UFUNCTION(BlueprintCallable, Category = "Input")
-	void Camera_RotateX(float InMouseX);
+	// Camera Pan X
+	UFUNCTION(Server, UnReliable, WithValidation)
+		void ROS_PanRight(float InValueX);
+	void ROS_PanRight_Implementation(float InValueX);
+
+	UFUNCTION(NetMulticast, Unreliable, WithValidation)
+		void MC_PanRight(float InValueX);
+	void MC_PanRight_Implementation(float InValueX);
+
+	void CameraPanX(float InValueX);
+
+	// Camera Pan Y
+	UFUNCTION(Server, UnReliable, WithValidation)
+		void ROS_PanForward(float InValueY);
+	void ROS_PanForward_Implementation(float InValueY);
+
+	UFUNCTION(NetMulticast, Unreliable, WithValidation)
+		void MC_PanForward(float InValueY);
+	void MC_PanForward_Implementation(float InValueY);
+
+	void CameraPanY(float InValueY);
+
+	// Camera Screen Edge Hit
+	// Camera ROS Screen Edge Hit X
+	UFUNCTION(Server, UnReliable, WithValidation)
+		void ROS_ScreenEdgeHitRight(float InValueX);
+	void ROS_ScreenEdgeHitRight_Implementation(float InValueX);
+
+	UFUNCTION(NetMulticast, Unreliable, WithValidation)
+		void MC_ScreenEdgeHitRight(float InValueX);
+	void MC_ScreenEdgeHitRight_Implementation(float InValueX);
+
+	// Camera ROS Screen Edge Hit Y
+	UFUNCTION(Server, UnReliable, WithValidation)
+		void ROS_ScreenEdgeHitForward(float InValueY);
+	void ROS_ScreenEdgeHitForward_Implementation(float InValueY);
+
+	UFUNCTION(NetMulticast, Unreliable, WithValidation)
+		void MC_ScreenEdgeHitForward(float InValueY);
+	void MC_ScreenEdgeHitForward_Implementation(float InValueY);
+
+	// Main Function of Edge Hit
+	void Camera_ScreenEdgeHit();
 
 	USpringArmComponent* SpringArm = nullptr;
 
 	UCameraComponent* Camera = nullptr;
+
+	APlayerController* PlayerController;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	float Camera_MoveSpeed = 20.0f;

@@ -33,12 +33,31 @@ protected:
 	UStaticMeshComponent* InvisibleObject = nullptr;
 
 private:
-	UFUNCTION(BlueprintCallable, Category = "Input")
+
+
+	// Camera Directional Movements - Forward and Back
+	UFUNCTION(Server, UnReliable, WithValidation)
+		void ROS_MoveForward(float InAxisValue);
+	void ROS_MoveForward_Implementation(float InAxisValue);
+
+	UFUNCTION(NetMulticast, Unreliable, WithValidation)
+		void MC_MoveForward(float InAxisValue);
+	void MC_MoveForward_Implementation(float InAxisValue);
+
 	void Camera_MoveForwardAndBack(float InAxisValueForward);
 
-	UFUNCTION(BlueprintCallable, Category = "Input")
+	// Camera Directional Movements - Left and Right
+	UFUNCTION(Server, UnReliable, WithValidation)
+		void ROS_MoveRight(float InAxisValue);
+	void ROS_MoveRight_Implementation(float InAxisValue);
+
+	UFUNCTION(NetMulticast, Unreliable, WithValidation)
+		void MC_MoveRight(float InAxisValue);
+	void MC_MoveRight_Implementation(float InAxisValue);
+
 	void Camera_MoveLeftAndRight(float InAxisValueRight);
 
+	// Camera Zoom
 	UFUNCTION(BlueprintCallable, Category = "Input")
 	void Camera_ZoomIn();
 

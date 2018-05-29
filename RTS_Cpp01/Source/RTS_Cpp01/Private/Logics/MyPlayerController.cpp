@@ -19,6 +19,23 @@ void AMyPlayerController::SetPlayerToSpawn_Implementation(TSubclassOf<APawn> InP
 	}
 }
 
+void AMyPlayerController::BeginPlay()
+{
+	Super::BeginPlay();
+
+	LockMouse();
+}
+
+void AMyPlayerController::LockMouse()
+{
+	SetInputMode(FInputModeGameAndUI::FInputModeGameAndUI().SetLockMouseToViewportBehavior(EMouseLockMode::LockAlways));
+}
+
+void AMyPlayerController::ReleaseMouse()
+{
+	SetInputMode(FInputModeGameAndUI::FInputModeGameAndUI().SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock));
+}
+
 bool AMyPlayerController::SetPlayerToSpawn_Validate(TSubclassOf<APawn> InPawn, FTransform InSpawnTransform, APlayerController* InController)
 {
 	return true;

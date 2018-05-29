@@ -69,8 +69,8 @@ void AMasterCommander::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	check(PlayerInputComponent);
 
 	// Camera movement input
-	PlayerInputComponent->BindAxis("MoveForward", this, &AMasterCommander::Camera_MoveForwardAndBack);
-	PlayerInputComponent->BindAxis("MoveRight", this, &AMasterCommander::Camera_MoveLeftAndRight);
+	PlayerInputComponent->BindAxis("MoveForward", this, &AMasterCommander::ROS_MoveForward);
+	PlayerInputComponent->BindAxis("MoveRight", this, &AMasterCommander::ROS_MoveRight);
 	
 	PlayerInputComponent->BindKey(EKeys::MouseScrollUp, IE_Pressed, this, &AMasterCommander::Camera_ZoomIn);
 	PlayerInputComponent->BindKey(EKeys::MouseScrollDown, IE_Pressed, this, &AMasterCommander::Camera_ZoomOut);
@@ -91,6 +91,26 @@ void AMasterCommander::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 	}
 }
 
+void AMasterCommander::ROS_MoveForward_Implementation(float InAxisValue)
+{
+	MC_MoveForward(InAxisValue);
+}
+
+bool AMasterCommander::ROS_MoveForward_Validate(float InAxisValue)
+{
+	return true;
+}
+
+void AMasterCommander::MC_MoveForward_Implementation(float InAxisValue)
+{
+	Camera_MoveForwardAndBack(InAxisValue);
+}
+
+bool AMasterCommander::MC_MoveForward_Validate(float InAxisValue)
+{
+	return true;
+}
+
 void AMasterCommander::Camera_MoveForwardAndBack(float InAxisValueForward)
 {
 	if (InAxisValueForward != 0.0f)
@@ -98,6 +118,27 @@ void AMasterCommander::Camera_MoveForwardAndBack(float InAxisValueForward)
 		float ScalarForward = InAxisValueForward * Camera_MoveSpeed;
 		AddActorLocalOffset(FVector(ScalarForward, 0.0f, 0.0f), true);
 	}
+}
+
+// Camera Directional Movements - Left and Right
+void AMasterCommander::ROS_MoveRight_Implementation(float InAxisValue)
+{
+	MC_MoveRight(InAxisValue);
+}
+
+bool AMasterCommander::ROS_MoveRight_Validate(float InAxisValue)
+{
+	return true;
+}
+
+void AMasterCommander::MC_MoveRight_Implementation(float InAxisValue)
+{
+	Camera_MoveLeftAndRight(InAxisValue);
+}
+
+bool AMasterCommander::MC_MoveRight_Validate(float InAxisValue)
+{
+	return true;
 }
 
 void AMasterCommander::Camera_MoveLeftAndRight(float InAxisValueRight)

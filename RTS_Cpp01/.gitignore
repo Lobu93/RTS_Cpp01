@@ -77,3 +77,5 @@ DerivedDataCache/*
 # Content/StarterContent/*
 
 RTS_Cpp01.VC.VC.opendb
+
+ipch/*

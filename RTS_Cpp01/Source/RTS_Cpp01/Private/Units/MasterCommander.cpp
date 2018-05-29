@@ -26,6 +26,10 @@ AMasterCommander::AMasterCommander()
 	SpringArm->RelativeRotation = FRotator(-80.0f, 0.0f, 0.0f);
 	SpringArm->bDoCollisionTest = false;
 	SpringArm->TargetArmLength = 2000.0f;
+	SpringArm->bEnableCameraLag = true;
+	SpringArm->CameraLagSpeed = 3.0f;
+	SpringArm->bEnableCameraRotationLag = true;
+	SpringArm->CameraRotationLagSpeed = 3.0f;
 
 	Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
 
